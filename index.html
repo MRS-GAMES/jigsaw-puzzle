@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>ジグソーパズル</title>
-<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ジグソーパズル">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css?v=pwa1">
 </head>
 <body>
 <div id="app">
-  <div id="screen-title" class="screen"><div class="title-wrap"><h1 class="logo">🧩 ジグソーパズル</h1><p class="tagline">すきな画像でパズルにちょうせん！</p><button id="btn-start" class="btn btn-primary btn-lg">はじめる</button><button id="btn-open-upload" class="btn btn-secondary">画像追加</button><button id="btn-open-settings" class="btn btn-ghost">⚙️ 設定</button><div class="best-times-box"><div class="best-times-title">ベストタイム</div><div class="best-times-list" id="best-times-list"></div></div><a href="https://mrs-games.pages.dev/" class="mrs-games-link" target="_blank" rel="noopener">MRS GAMES</a></div></div>
+  <div id="screen-title" class="screen"><div class="title-wrap"><h1 class="logo">🧩 ジグソーパズル</h1><p class="tagline">すきな画像でパズルにちょうせん！</p><button id="btn-start" class="btn btn-primary btn-lg">はじめる</button><button id="btn-open-upload" class="btn btn-secondary">画像追加</button><button id="btn-open-settings" class="btn btn-ghost">⚙️ 設定</button><div class="offline-info"><span id="offline-status" role="status">オフライン準備を確認中…</span><button id="offline-retry" type="button" hidden>再試行</button></div><div class="best-times-box"><div class="best-times-title">ベストタイム</div><div class="best-times-list" id="best-times-list"></div></div><a href="https://mrs-games.pages.dev/" class="mrs-games-link" target="_blank" rel="noopener">MRS GAMES</a></div></div>
   <div id="screen-level" class="screen hidden"><div class="panel"><h2 class="panel-title">レベルをえらんでね</h2><div class="level-grid" id="level-grid"></div><div class="mode-buttons"><button id="btn-play-random" class="btn btn-primary btn-lg">🎲 ランダムであそぶ</button><button id="btn-play-choose" class="btn btn-secondary">🖼️ 画像をえらんであそぶ</button></div><button id="btn-level-back" class="btn btn-ghost">タイトルへもどる</button></div></div>
   <div id="screen-imageselect" class="screen hidden"><div class="panel panel-wide"><h2 class="panel-title">画像をえらんでね</h2><div class="image-grid" id="image-select-grid"></div><button id="btn-imageselect-back" class="btn btn-ghost">レベル選択へもどる</button></div></div>
   <div id="screen-game" class="screen hidden screen-game"><div id="game-topbar"><div id="game-level-tag">EASY</div><div id="game-timer">00:00</div><button id="btn-pause" class="icon-btn" aria-label="ポーズ">⏸</button></div><div id="game-stage"><canvas id="game-canvas"></canvas><button id="guide-thumbnail" class="guide-thumbnail hidden" aria-label="完成図を拡大"><img id="guide-thumbnail-image" alt="完成図"></button></div></div>
@@ -21,18 +25,24 @@
   <input type="file" id="file-input" accept="image/*" hidden>
 </div>
 
-<!-- Keep the provider script in its own document so it cannot block game startup. -->
-<aside class="ad-banner" aria-label="広告">
-  <iframe class="ad-frame" title="広告" width="320" height="50"
-    srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;ja&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;UTF-8&quot;&gt;&lt;style&gt;html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden}body{display:flex;align-items:center;justify-content:center}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;!-- admax --&gt;&lt;script src=&quot;https://adm.shinobi.jp/s/8a495d941206bf0c34aff9559f8d2cea&quot;&gt;&lt;/script&gt;&lt;!-- admax --&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
-</aside>
-
-<script src="ui.js"></script>
-<script src="best-times.js"></script>
-<script src="timer.js"></script>
-<script src="settings.js"></script>
-<script src="image-manager.js"></script>
-<script src="puzzle.js"></script>
-<script src="script.js"></script>
+<script src="ui.js?v=pwa1"></script>
+<script src="best-times.js?v=pwa1"></script>
+<script src="timer.js?v=pwa1"></script>
+<script src="settings.js?v=pwa1"></script>
+<script src="image-manager.js?v=pwa1"></script>
+<script src="puzzle.js?v=pwa1"></script>
+<script src="script.js?v=pwa1"></script>
+<script>
+if (!window.JigsawBooted) {
+  document.getElementById("app").innerHTML = '<div class="screen"><p>ゲームの準備データが不足しています。通信を確認して再試行してください。</p><button class="btn btn-primary" onclick="location.reload()">再試行</button></div>';
+}
+</script>
+<script src="pwa.js?v=pwa1"></script>
+<div class="ad-banner" aria-label="広告"><div class="ad-banner-inner">
+<!-- The game is initialized above, before the provider's synchronous script. -->
+<!-- admax -->
+<script src="https://adm.shinobi.jp/s/8a495d941206bf0c34aff9559f8d2cea"></script>
+<!-- admax -->
+</div></div>
 </body>
 </html>

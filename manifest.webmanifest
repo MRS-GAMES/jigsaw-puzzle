@@ -1,0 +1,11 @@
+{
+  "id": "./",
+  "name": "ジグソーパズル",
+  "short_name": "ジグソーパズル",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#f4f1ea"
+}
