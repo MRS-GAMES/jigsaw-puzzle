@@ -43,4 +43,5 @@
   $("btn-upload-list").addEventListener("click",()=>{app.imageManager.renderUploadedGrid();app.ui.showModal(modals.uploadList);});
   $("btn-uploaded-close").addEventListener("click",()=>app.ui.hideModal(modals.uploadList));
   app.bestTimes.renderBestTimes();app.settings.renderSettings(app.imageManager.getUploadedCount());app.imageManager.loadUploadedImagesFromDB();app.ui.showScreen("title");
+  window.JigsawBooted=true;
 })();
