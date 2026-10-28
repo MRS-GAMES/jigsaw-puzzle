@@ -3,10 +3,10 @@
   const status = document.getElementById("offline-status");
   const retry = document.getElementById("offline-retry");
   if (!status || !retry) return;
-  let registration, checking = false, needsActivation = false;
+  let registration, checking = false, controlTimer;
   const show = (message, failed = false) => {
     status.textContent = message;retry.hidden = !failed;
-    needsActivation = false;retry.textContent = "再試行";
+    retry.textContent = "再試行";
   };
   const failure = () => show("オフライン準備ができませんでした。通信を確認して再試行してください。", true);
   function checkReady(worker, type = "CHECK_READY") {
@@ -25,10 +25,15 @@
       if (!(await checkReady(worker))) {failure();return;}
       if (navigator.serviceWorker.controller !== controller) {await report();return;}
       if (!controller) {
-        show("保存が完了しました。有効にするには画面を再読み込みしてください。", true);
-        needsActivation = true;retry.textContent = "有効にする";
+        show("オフライン準備の仕上げ中…");
+        if (!controlTimer) controlTimer = setTimeout(() => {
+          controlTimer = null;
+          if (!navigator.serviceWorker.controller)
+            show("準備の有効化に時間がかかっています。画面を閉じて開き直してください。", true);
+        }, 10000);
         return;
       }
+      clearTimeout(controlTimer);controlTimer = null;
       show("オフラインで遊べます");
     } catch { failure(); }
   }
@@ -70,12 +75,6 @@
   }
   retry.addEventListener("click", async () => {
     if(checking) return;
-    if(needsActivation) {
-      // Never reload a game in progress, even if the button is triggered programmatically.
-      const game = document.getElementById("screen-game");
-      if(game && !game.classList.contains("hidden")) return;
-      location.reload();return;
-    }
     const worker = navigator.serviceWorker?.controller || registration?.active;
     if (worker) {
       checking = true;show("オフライン準備を再試行中…");
