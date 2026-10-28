@@ -4,13 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>ジグソーパズル</title>
+<meta name="description" content="好きな画像で楽しめるジグソーパズル。サンプル画像や自分の写真で、4つの難易度に挑戦できます。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="MRS GAMES">
+<meta property="og:title" content="ジグソーパズル | MRS GAMES">
+<meta property="og:description" content="すきな画像で、パズルを楽しもう！ サンプル画像や自分の写真で遊べるジグソーパズル。">
+<meta property="og:url" content="https://jigsaw-puzzle-82i.pages.dev/">
+<meta property="og:image" content="https://jigsaw-puzzle-82i.pages.dev/assets/ogp/jigsaw-puzzle.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ジグソーパズル。クリーム色の背景に5色のパズルピースを重ねたMRS GAMESのゲーム紹介画像。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ジグソーパズル | MRS GAMES">
+<meta name="twitter:description" content="すきな画像で、パズルを楽しもう！">
+<meta name="twitter:image" content="https://jigsaw-puzzle-82i.pages.dev/assets/ogp/jigsaw-puzzle.jpg">
+<meta name="twitter:image:alt" content="5色のパズルピースを使ったジグソーパズルの紹介画像">
+
 <meta name="theme-color" content="#f4f1ea">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ジグソーパズル">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
-<link rel="stylesheet" href="style.css?v=pwa5">
+<link rel="stylesheet" href="style.css?v=pwa6">
 </head>
 <body>
 <div id="app">
@@ -27,19 +45,19 @@
   <input type="file" id="file-input" accept="image/*" hidden>
 </div>
 
-<script src="ui.js?v=pwa5"></script>
-<script src="best-times.js?v=pwa5"></script>
-<script src="timer.js?v=pwa5"></script>
-<script src="settings.js?v=pwa5"></script>
-<script src="image-manager.js?v=pwa5"></script>
-<script src="puzzle.js?v=pwa5"></script>
-<script src="script.js?v=pwa5"></script>
+<script src="ui.js?v=pwa6"></script>
+<script src="best-times.js?v=pwa6"></script>
+<script src="timer.js?v=pwa6"></script>
+<script src="settings.js?v=pwa6"></script>
+<script src="image-manager.js?v=pwa6"></script>
+<script src="puzzle.js?v=pwa6"></script>
+<script src="script.js?v=pwa6"></script>
 <script>
 if (!window.JigsawBooted) {
   document.getElementById("app").innerHTML = '<div class="screen"><p>ゲームの準備データが不足しています。通信を確認して再試行してください。</p><button class="btn btn-primary" onclick="location.reload()">再試行</button></div>';
 }
 </script>
-<script src="pwa.js?v=pwa5"></script>
+<script src="pwa.js?v=pwa6"></script>
 <div class="ad-banner" aria-label="広告"><div class="ad-banner-inner">
 <!-- The game is initialized above, before the provider's synchronous script. -->
 <!-- admax -->
