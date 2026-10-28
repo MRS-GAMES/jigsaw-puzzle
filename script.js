@@ -13,7 +13,7 @@
   window.JigsawModules.bestTimes(app);window.JigsawModules.timer(app);window.JigsawModules.ui(app);window.JigsawModules.settings(app);window.JigsawModules.imageManager(app);window.JigsawModules.puzzle(app);
   function renderLevelGrid(){el.levelGrid.innerHTML="";LEVEL_ORDER.forEach(lvl=>{const cfg=LEVELS[lvl],btn=document.createElement("button");btn.className="level-btn"+(lvl===state.selectedLevel?" active":"");btn.innerHTML=`<span class="lvl-name">${cfg.label}</span><span class="lvl-pieces">${cfg.pieces}ピース</span>`;btn.addEventListener("click",()=>{state.selectedLevel=lvl;renderLevelGrid();});el.levelGrid.appendChild(btn);});}
   function startGame(resumeData){app.puzzle.startGame(resumeData);}
-  function goToClear(){app.timer.stopTimer();app.puzzle.stopGameLoop();state.isRunning=false;app.puzzle.clearResumeState();const seconds=app.timer.currentElapsedSeconds(),isNewRecord=app.bestTimes.trySaveBestTime(state.selectedLevel,seconds);el.clearTime.textContent=app.bestTimes.formatTime(seconds);el.clearBestTag.textContent=isNewRecord?"🎉 ベストタイム更新！":"";app.ui.showScreen("clear");}
+  function goToClear(){app.ui.hideModal(modals.pause);app.timer.stopTimer();app.puzzle.stopGameLoop();state.isRunning=false;app.puzzle.clearResumeState();const seconds=app.timer.currentElapsedSeconds(),isNewRecord=app.bestTimes.trySaveBestTime(state.selectedLevel,seconds);el.clearTime.textContent=app.bestTimes.formatTime(seconds);el.clearBestTag.textContent=isNewRecord?"🎉 ベストタイム更新！":"";app.ui.showScreen("clear");}
   app.startGame=startGame;app.goToClear=goToClear;
   function updateCompletionImageVisibility(){el.guideThumbnail.classList.toggle("hidden",!app.settings.getBoolSetting(app.settings.keys.completionImage,true));}
   function openLevelOrResume(){app.imageManager.loadUploadedImagesFromDB().then(()=>{const resumeData=app.puzzle.getResumeState();if(!resumeData){app.imageManager.guardNoImages();renderLevelGrid();app.ui.showScreen("level");return;}if(!app.imageManager.getImageById(resumeData.imageId)){app.puzzle.clearResumeState();alert("中断したパズルの画像が削除されました。はじめから開始します。");app.imageManager.guardNoImages();renderLevelGrid();app.ui.showScreen("level");return;}app.ui.showModal(modals.resume);}).catch(()=>{const resumeData=app.puzzle.getResumeState();if(resumeData)app.ui.showModal(modals.resume);else{app.imageManager.guardNoImages();renderLevelGrid();app.ui.showScreen("level");}});}
@@ -22,8 +22,35 @@
   $("btn-play-random").addEventListener("click",()=>{app.imageManager.guardNoImages();state.currentImage=app.imageManager.pickRandomImage();if(state.currentImage)startGame();});
   $("btn-play-choose").addEventListener("click",()=>{app.imageManager.guardNoImages();app.imageManager.renderImageSelectGrid();app.ui.showScreen("imageselect");});
   $("btn-imageselect-back").addEventListener("click",()=>app.ui.showScreen("level"));
-  $("btn-pause").addEventListener("click",()=>{if(!state.isRunning)return;app.timer.pauseTimer();app.ui.showModal(modals.pause);});
-  $("btn-resume").addEventListener("click",()=>{app.timer.resumeTimer();app.ui.hideModal(modals.pause);});
+  let backgrounded=document.hidden, pendingSaveFailure=false;
+  function gameIsActive(){return state.isRunning&&!screens.game.classList.contains("hidden");}
+  function pauseCurrentGame(){
+    if(!gameIsActive())return;
+    app.timer.pauseTimer();app.puzzle.pauseGame();
+    app.ui.hideModal(modals.guidePreview);app.ui.showModal(modals.pause);
+  }
+  function pauseForBackground(){
+    if(!gameIsActive())return;
+    pauseCurrentGame();
+    if(!app.puzzle.saveResumeState())pendingSaveFailure=true;
+  }
+  function reportBackgroundSaveFailure(){
+    if(document.hidden||!pendingSaveFailure)return;
+    pendingSaveFailure=false;
+    alert("中断データを保存できませんでした。この画面では続けられますが、画面を閉じると進み具合が失われる可能性があります。");
+  }
+  document.addEventListener("visibilitychange",()=>{
+    backgrounded=document.hidden;
+    if(backgrounded)pauseForBackground();else reportBackgroundSaveFailure();
+  });
+  window.addEventListener("pagehide",()=>{backgrounded=true;pauseForBackground();});
+  window.addEventListener("pageshow",()=>{backgrounded=document.hidden;reportBackgroundSaveFailure();});
+  app.onGameReady=()=>{if(backgrounded||document.hidden)pauseForBackground();};
+  $("btn-pause").addEventListener("click",pauseCurrentGame);
+  $("btn-resume").addEventListener("click",()=>{
+    if(!gameIsActive()||document.hidden||backgrounded||!state.isPaused)return;
+    app.timer.resumeTimer();app.puzzle.resumeGame();app.ui.hideModal(modals.pause);
+  });
   $("btn-pause-title").addEventListener("click",()=>{if(!app.puzzle.saveResumeState())return;app.puzzle.stopGame();app.ui.hideModal(modals.pause);app.bestTimes.renderBestTimes();el.guideThumbnail.classList.add("hidden");app.ui.showScreen("title");});
   $("btn-resume-yes").addEventListener("click",()=>{const resumeData=app.puzzle.getResumeState();app.ui.hideModal(modals.resume);if(!resumeData){renderLevelGrid();app.ui.showScreen("level");return;}const image=app.imageManager.getImageById(resumeData.imageId);if(!image){app.puzzle.clearResumeState();alert("中断したパズルの画像が削除されました。はじめから開始します。");app.imageManager.guardNoImages();renderLevelGrid();app.ui.showScreen("level");return;}state.selectedLevel=resumeData.level;state.currentImage=image;startGame(resumeData);});
   $("btn-resume-no").addEventListener("click",()=>{app.puzzle.clearResumeState();app.ui.hideModal(modals.resume);app.imageManager.guardNoImages();renderLevelGrid();app.ui.showScreen("level");});
