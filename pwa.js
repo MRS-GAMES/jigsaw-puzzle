@@ -3,8 +3,11 @@
   const status = document.getElementById("offline-status");
   const retry = document.getElementById("offline-retry");
   if (!status || !retry) return;
-  let registration, checking = false;
-  const show = (message, failed = false) => {status.textContent = message;retry.hidden = !failed;};
+  let registration, checking = false, needsActivation = false;
+  const show = (message, failed = false) => {
+    status.textContent = message;retry.hidden = !failed;
+    needsActivation = false;retry.textContent = "再試行";
+  };
   const failure = () => show("オフライン準備ができませんでした。通信を確認して再試行してください。", true);
   function checkReady(worker, type = "CHECK_READY") {
     return new Promise((resolve,reject) => {
@@ -15,12 +18,21 @@
     });
   }
   async function report() {
-    if (!registration?.active) return;
+    const controller = navigator.serviceWorker.controller;
+    const worker = controller || registration?.active;
+    if (!worker) return;
     try {
-      if (await checkReady(registration.active)) show("オフラインで遊べます");
-      else failure();
+      if (!(await checkReady(worker))) {failure();return;}
+      if (navigator.serviceWorker.controller !== controller) {await report();return;}
+      if (!controller) {
+        show("保存が完了しました。有効にするには画面を再読み込みしてください。", true);
+        needsActivation = true;retry.textContent = "有効にする";
+        return;
+      }
+      show("オフラインで遊べます");
     } catch { failure(); }
   }
+  navigator.serviceWorker?.addEventListener("controllerchange", () => report());
   function watch(worker) {
     if (!worker) return;
     const deadline = setTimeout(() => {if(worker.state !== "activated" && worker.state !== "installed") failure();}, 20000);
@@ -58,11 +70,18 @@
   }
   retry.addEventListener("click", async () => {
     if(checking) return;
-    if (registration?.active) {
+    if(needsActivation) {
+      // Never reload a game in progress, even if the button is triggered programmatically.
+      const game = document.getElementById("screen-game");
+      if(game && !game.classList.contains("hidden")) return;
+      location.reload();return;
+    }
+    const worker = navigator.serviceWorker?.controller || registration?.active;
+    if (worker) {
       checking = true;show("オフライン準備を再試行中…");
       try {
-        if(await checkReady(registration.active,"REPAIR")) {
-          show("オフラインで遊べます");return;
+        if(await checkReady(worker,"REPAIR")) {
+          await report();return;
         }
         show("準備できませんでした。通信を確認してください。更新がある場合はゲームを閉じて開き直してください。",true);
         registration.update().catch(()=>{});
