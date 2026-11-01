@@ -4,13 +4,37 @@
   window.JigsawModules.settings=function(app){
     const KEYS={guidePicture:"jigsaw_guide_picture",guideLine:"jigsaw_guide_line",completionImage:"jigsaw_completion_image",hiddenSamples:"jigsaw_hidden_samples",sampleEnabled:"jigsaw_sample_images",backupHidden:"jigsaw_hidden_samples_before_sample_off"};
     const SAMPLE_IDS=app.SAMPLE_IMAGES.map((img)=>img.id);
-    function getBoolSetting(key,defaultValue){const v=localStorage.getItem(key);return v===null?defaultValue:v==="1";}
-    function setBoolSetting(key,value){try{localStorage.setItem(key,value?"1":"0");}catch(e){}}
-    function getHiddenSamples(){try{const v=JSON.parse(localStorage.getItem(KEYS.hiddenSamples)||"[]");return Array.isArray(v)?v:[];}catch(e){return[];}}
-    function setHiddenSamples(ids){try{localStorage.setItem(KEYS.hiddenSamples,JSON.stringify(ids));}catch(e){}}
+    const sessionValues = new Map();
+    function readValue(key) {
+      if (sessionValues.has(key)) return sessionValues.get(key);
+      try { return localStorage.getItem(key); }
+      catch (error) { app.reportStorageReadFailure(); return null; }
+    }
+    function writeValues(values) {
+      let saved = true;
+      Object.entries(values).forEach(([key, value]) => {
+        sessionValues.set(key, value);
+        try { localStorage.setItem(key, value); } catch (error) { saved = false; }
+      });
+      if (!saved) alert("設定を保存できませんでした。この画面では反映されますが、画面を閉じると元に戻る可能性があります。");
+      return saved;
+    }
+    function getBoolSetting(key,defaultValue){const v=readValue(key);return v===null?defaultValue:v==="1";}
+    function setBoolSetting(key,value){return writeValues({[key]:value?"1":"0"});}
+    function getHiddenSamples(){try{const v=JSON.parse(readValue(KEYS.hiddenSamples)||"[]");return Array.isArray(v)?v:[];}catch(e){return[];}}
+    function setHiddenSamples(ids){return writeValues({[KEYS.hiddenSamples]:JSON.stringify(ids)});}
     function isSampleVisible(id){return !getHiddenSamples().includes(id);}
     function isSampleEnabled(){return getBoolSetting(KEYS.sampleEnabled,true);}
-    function setSampleEnabled(enabled){const current=isSampleEnabled();if(enabled===current)return;if(!enabled){try{localStorage.setItem(KEYS.backupHidden,JSON.stringify(getHiddenSamples()));}catch(e){}setHiddenSamples(Array.from(new Set([...getHiddenSamples(),...SAMPLE_IDS])));setBoolSetting(KEYS.sampleEnabled,false);}else{try{const backup=JSON.parse(localStorage.getItem(KEYS.backupHidden)||"null");if(Array.isArray(backup))setHiddenSamples(backup);}catch(e){}setBoolSetting(KEYS.sampleEnabled,true);}}
+    function setSampleEnabled(enabled){
+      if(enabled===isSampleEnabled())return;
+      if(!enabled){
+        const hidden=getHiddenSamples();
+        return writeValues({[KEYS.backupHidden]:JSON.stringify(hidden),[KEYS.hiddenSamples]:JSON.stringify(Array.from(new Set([...hidden,...SAMPLE_IDS]))),[KEYS.sampleEnabled]:"0"});
+      }
+      let backup=null;
+      try{backup=JSON.parse(readValue(KEYS.backupHidden)||"null");}catch(e){}
+      return writeValues({...(Array.isArray(backup)?{[KEYS.hiddenSamples]:JSON.stringify(backup)}:{}),[KEYS.sampleEnabled]:"1"});
+    }
     function renderSettings(uploadedCount){
       const gp=getBoolSetting(KEYS.guidePicture,true),gl=getBoolSetting(KEYS.guideLine,true),ci=getBoolSetting(KEYS.completionImage,true);
       app.el.settingGuidePicture.querySelector("strong").textContent=gp?"ON":"OFF";app.el.settingGuideLine.querySelector("strong").textContent=gl?"ON":"OFF";app.el.settingCompletionImage.querySelector("strong").textContent=ci?"ON":"OFF";
